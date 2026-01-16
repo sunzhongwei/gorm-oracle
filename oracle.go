@@ -358,7 +358,8 @@ func (d Dialector) RewriteLimit11(c clause.Clause, builder clause.Builder) {
 		return
 	}
 
-	if hasLimit && hasOffset {
+	hasOrder := len(stmt.Clauses["ORDER BY"].Expression.(clause.OrderBy).Columns) > 0
+	if hasLimit && (hasOffset || hasOrder) { 
 		// 使用 ROW_NUMBER() 和子查询实现分页查询
 		if d.RowNumberAliasForOracle11 == "" {
 			d.RowNumberAliasForOracle11 = "ROW_NUM"
