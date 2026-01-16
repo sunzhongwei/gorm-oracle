@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sijms/go-ora/v2"
+	go_ora "github.com/sijms/go-ora/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
 	"gorm.io/gorm/clause"
@@ -358,8 +358,14 @@ func (d Dialector) RewriteLimit11(c clause.Clause, builder clause.Builder) {
 		return
 	}
 
-	hasOrder := len(stmt.Clauses["ORDER BY"].Expression.(clause.OrderBy).Columns) > 0
-	if hasLimit && (hasOffset || hasOrder) { 
+	var hasOrder bool
+	if orderClause, ok := stmt.Clauses["ORDER BY"]; ok && orderClause.Expression != nil {
+		if orderExpr, ok := orderClause.Expression.(clause.OrderBy); ok {
+			hasOrder = len(orderExpr.Columns) > 0
+		}
+	}
+
+	if hasLimit && (hasOffset || hasOrder) {
 		// 使用 ROW_NUMBER() 和子查询实现分页查询
 		if d.RowNumberAliasForOracle11 == "" {
 			d.RowNumberAliasForOracle11 = "ROW_NUM"
