@@ -362,6 +362,11 @@ func (d Dialector) RewriteLimit11(c clause.Clause, builder clause.Builder) {
 	if orderClause, ok := stmt.Clauses["ORDER BY"]; ok && orderClause.Expression != nil {
 		if orderExpr, ok := orderClause.Expression.(clause.OrderBy); ok {
 			hasOrder = len(orderExpr.Columns) > 0
+			// 在 First 方法中，也会自动加上 limit 1，此时如果没有指定 Order，则不进行分页查询改写
+			// 这个写法不太合理，先临时这样处理吧
+			if hasLimit && limitRows == 1 {
+				hasOrder = false
+			}
 		}
 	}
 
